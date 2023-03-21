@@ -16,6 +16,39 @@ extension String {
         self = self.capitalizingFirstLetter()
     }
 }
+
+struct Title: ViewModifier {
+    func body(content: Content) -> some View {
+        content
+            .font(.largeTitle)
+            .foregroundColor(.white)
+            .padding()
+            .background(.blue)
+            .clipShape(RoundedRectangle(cornerRadius: 10))
+    }
+}
+
+extension View {
+    func flagView() -> some View {
+        modifier(Title())
+    }
+}
+
+struct Title2: ViewModifier {
+    func body(content: Content) -> some View {
+        content
+            .font(.largeTitle.weight(.bold))
+            .foregroundColor(.white)
+    }
+}
+
+extension View {
+    func titleView() -> some View {
+        modifier(Title2())
+    }
+}
+
+
 struct ContentView: View {
     
     @State private var showingScore = false
@@ -36,8 +69,7 @@ struct ContentView: View {
             VStack {
                 Spacer()
                 Text("Guess the Flag")
-                    .font(.largeTitle.weight(.bold))
-                    .foregroundColor(.white)
+                    .titleView()
                 VStack(spacing: 15) {
                     VStack {
                         Text("Tap the flag of").font(.subheadline.weight(.heavy))
@@ -47,12 +79,18 @@ struct ContentView: View {
                     ForEach(0..<3) { number in
                         Button {
                             flagTapped(number)
+                            
                         } label: {
-                            Image(countries[number])
-                                .renderingMode(.original).clipShape(Capsule()).shadow(radius: 5)
-                            
-                            
+                            if number == 0 {
+                                Image(countries[number])
+                                    .renderingMode(.original).clipShape(Capsule()).shadow(radius: 5)
+                                    .flagView()
+                            } else {
+                                Image(countries[number])
+                                    .renderingMode(.original).clipShape(Capsule()).shadow(radius: 5)
+                            }
                         }
+
                     }
                 }
                 .frame(maxWidth: .infinity)
@@ -114,6 +152,7 @@ struct ContentView: View {
         gamePlayed = 0
         showingScore = false
     }
+    
     
 }
 
