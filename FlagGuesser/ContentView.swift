@@ -58,6 +58,11 @@ struct ContentView: View {
     @State private var gamePlayed = 0
     @State private var countries = ["estonia", "france", "germany", "ireland", "italy", "nigeria", "poland", "russia", "spain", "uk", "us"].shuffled()
     @State private var correctAnswer = Int.random(in: 0...2)
+    @State private var animationAmount = 0.0
+    @State private var fadeAmount = 1.0
+    @State private var enabled = false
+    @State private var flagChoice = 1
+
 
     var body: some View {
         ZStack {
@@ -78,18 +83,35 @@ struct ContentView: View {
                     }
                     ForEach(0..<3) { number in
                         Button {
+                            flagChoice = number
                             flagTapped(number)
-                            
+                            enabled.toggle()
+                            withAnimation {
+                                animationAmount += 360
+                                fadeAmount -= 0.5
+                            }
+
                         } label: {
-                            if number == 0 {
+                            if number == flagChoice {
                                 Image(countries[number])
-                                    .renderingMode(.original).clipShape(Capsule()).shadow(radius: 5)
-                                    .flagView()
+                                    .renderingMode(.original).shadow(radius: 5)
+                                    .rotation3DEffect(.degrees(animationAmount), axis: (x: 0, y: 1, z: 0))
+                                
+
                             } else {
                                 Image(countries[number])
-                                    .renderingMode(.original).clipShape(Capsule()).shadow(radius: 5)
+                                    .renderingMode(.original).shadow(radius: 5)
+                                    .opacity(fadeAmount)
+                                    .rotation3DEffect(.degrees(animationAmount), axis: (x: 1, y: 0, z: 1))
+                                    .animation(.default, value: enabled)
                             }
                         }
+
+
+//.animation(.default, value: enabled)
+
+       
+
 
                     }
                 }
@@ -97,6 +119,7 @@ struct ContentView: View {
                 .padding(.vertical, 20)
                 .background(.regularMaterial)
                 .clipShape(RoundedRectangle(cornerRadius: 20))
+                
                 Spacer()
                 Spacer()
                 Text("Score: \(scoreTotal)")
@@ -110,17 +133,20 @@ struct ContentView: View {
             .padding()
             
         }
-        .alert(scoreTitle, isPresented: $gameOver) {
-            Button("Restart", action: resetGame)
+        .alert(scoreTitle, isPresented: $showingScore) {
+            if gameOver {
+                Button("Restart", action: resetGame)
+            } else {
+                Button("Continue", action: askQuestion)
+            }
         } message: {
-            Text("Game Over score is \(scoreTotal) out of 8")
+            if gameOver {
+                Text("Game Over score is \(scoreTotal) out of 8")
+            } else {
+                Text("Your score is \(scoreTotal)")
+            }
         }
 
-        .alert(scoreTitle, isPresented: $showingScore) {
-            Button("Continue", action: askQuestion)
-        } message: {
-            Text("Your score is \(scoreTotal)")
-        }
     }
     func flagTapped(_ number: Int) {
         if number == correctAnswer {
@@ -144,6 +170,8 @@ struct ContentView: View {
     func askQuestion() {
         countries.shuffle()
         correctAnswer = Int.random(in: 0...2)
+        flagChoice = 3
+        fadeAmount = 1
     }
     func resetGame() {
         countries.shuffle()
@@ -151,6 +179,9 @@ struct ContentView: View {
         scoreTotal = 0
         gamePlayed = 0
         showingScore = false
+        gameOver = false
+        flagChoice = 3
+        fadeAmount = 1
     }
     
     
